@@ -1,0 +1,7 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "video-trimmer",
+  "compatibility_date": "2026-09-07",
+  "assets": { "directory": "./dist" },
+  "observability": { "enabled": true }
+}

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0369a1" />
+
+    <title>Video Trimmer — cut a clip from a video, with sound, no upload</title>
+    <meta
+      name="description"
+      content="Cut a clip out of a video right in your browser, with its sound. Pick the start and end, then export a WebM. Free and private — your video is never uploaded."
+    />
+    <link rel="canonical" href="https://video-trimmer.correia95.workers.dev/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Video Trimmer" />
+    <meta property="og:description" content="Cut a clip from a video in your browser, with sound. Nothing is uploaded." />
+    <meta property="og:url" content="https://video-trimmer.correia95.workers.dev/" />
+    <meta property="og:image" content="https://video-trimmer.correia95.workers.dev/og.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Video Trimmer" />
+    <meta name="twitter:description" content="Cut a clip from a video in your browser, with sound. Nothing is uploaded." />
+    <meta name="twitter:image" content="https://video-trimmer.correia95.workers.dev/og.svg" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Video Trimmer",
+        "url": "https://video-trimmer.correia95.workers.dev/",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Any",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "description": "Cuts a chosen section out of a video, with its audio, and exports it as a WebM file entirely in the browser, with no upload."
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Is my video uploaded anywhere?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. The video is read and trimmed entirely in your browser. Nothing is sent to a server, and your original file is never changed."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Why does exporting take as long as the clip?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Browsers cannot cut a video without re-encoding it, so the chosen section is played once while the browser records it as a new video. Exporting therefore takes about as long as the clip itself."
+            }
+          }
+        ]
+      }
+    </script>
+      <style>
+      .tt-nav { box-sizing: border-box; width: 100%; margin: 0; background: #f1f1f4; border-bottom: 1px solid rgba(0, 0, 0, 0.1); }
+      .tt-nav a { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; text-decoration: none; color: #3730a3; font: 600 13px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+      .tt-nav a:hover { color: #1e1b4b; text-decoration: underline; }
+      .tt-nav svg { width: 14px; height: 14px; flex: none; }
+      @media (prefers-color-scheme: dark) {
+        .tt-nav { background: #15151b; border-bottom-color: rgba(255, 255, 255, 0.12); }
+        .tt-nav a { color: #c7d2fe; }
+        .tt-nav a:hover { color: #e0e7ff; }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="tt-nav"><a href="https://tinytools.correia95.workers.dev/" aria-label="TinyTools home — all tools and games"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 2 11h3v9h5v-6h4v6h5v-9h3z"/></svg><span>TinyTools</span></a></nav>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <noscript>
+      <p style="text-align: center; padding: 20px">
+        This tool needs JavaScript. It trims your video entirely in your browser, with
+        nothing uploaded.
+      </p>
+    </noscript>
+  </body>
+</html>

@@ -1,0 +1,100 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f3f5f7;
+  --card: #ffffff;
+  --card-2: #eaeef2;
+  --ink: #14202b;
+  --ink-soft: #5c6b78;
+  --line: #d6dee4;
+  --brand: #0369a1;
+  --on-brand: #ffffff;
+  --bad: #b91c1c;
+  --warn: #a16207;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0a1218;
+    --card: #101c26;
+    --card-2: #172531;
+    --ink: #e8eef2;
+    --ink-soft: #93a4b2;
+    --line: #223140;
+    --brand: #38bdf8;
+    --on-brand: #06131c;
+    --bad: #f87171;
+    --warn: #fbbf24;
+  }
+}
+* { box-sizing: border-box; }
+html { overflow-x: hidden; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.page { max-width: 680px; margin: 0 auto; padding: 22px 16px 60px; }
+h1 { font-size: clamp(1.4rem, 4.2vw, 1.9rem); margin: 0 0 6px; letter-spacing: -0.02em; }
+.lede { color: var(--ink-soft); margin: 0 0 18px; max-width: 64ch; font-size: 0.92rem; }
+
+.drop {
+  border: 2px dashed var(--line); border-radius: 14px; padding: 40px 20px; text-align: center;
+  background: var(--card);
+}
+.drop.over { border-color: var(--brand); background: var(--card-2); }
+.drop p { margin: 0 0 12px; color: var(--ink-soft); }
+.filebtn {
+  display: inline-block; background: var(--brand); color: var(--on-brand); font-weight: 700; padding: 10px 20px;
+  border-radius: 10px; cursor: pointer;
+}
+.filebtn input { display: none; }
+.err { color: var(--bad); font-weight: 600; margin: 8px 0 12px; }
+.warn { color: var(--warn); font-weight: 600; font-size: 0.88rem; margin: 0 0 12px; }
+
+.video { display: block; width: 100%; max-height: 320px; border-radius: 10px; border: 1px solid var(--line); margin-bottom: 10px; background: #000; }
+
+.scrub-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.scrub-row input[type="range"] { flex: 1; min-width: 0; }
+.label { font-size: 0.85rem; color: var(--ink-soft); }
+.time { font-variant-numeric: tabular-nums; font-size: 0.85rem; color: var(--ink-soft); white-space: nowrap; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 8px; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 120px; }
+.field span:first-child { font-size: 0.85rem; color: var(--ink-soft); }
+.field select, .field input {
+  font: inherit; font-size: 0.95rem; padding: 8px 10px; border-radius: 8px; width: 100%;
+  border: 1px solid var(--line); background: var(--card); color: var(--ink);
+}
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+.primary {
+  display: inline-block; border: none; background: var(--brand); color: var(--on-brand); font: inherit; font-weight: 700;
+  padding: 10px 20px; border-radius: 10px; cursor: pointer; text-decoration: none; text-align: center;
+}
+.ghost {
+  border: 1px solid var(--line); background: var(--card); color: var(--ink); font: inherit; font-weight: 600;
+  padding: 10px 20px; border-radius: 10px; cursor: pointer;
+}
+
+.progress { position: relative; height: 30px; border-radius: 8px; background: var(--card-2); overflow: hidden; margin-bottom: 16px; }
+.progress-fill { position: absolute; inset: 0 auto 0 0; background: color-mix(in srgb, var(--brand) 45%, transparent); transition: width 0.15s; }
+.progress span { position: relative; display: block; text-align: center; line-height: 30px; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+
+.result { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 20px; text-align: center; }
+.result .preview { max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 0 auto 10px; }
+.hint { font-size: 0.85rem; color: var(--ink-soft); margin: 0 0 12px; }
+
+.explainer { margin-top: 36px; border-top: 1px solid var(--line); padding-top: 10px; }
+.explainer h2 { font-size: 1.1rem; margin: 18px 0 8px; }
+.explainer h3 { font-size: 0.96rem; margin: 16px 0 6px; }
+.explainer p { color: var(--ink-soft); font-size: 0.9rem; }
+
+.range-block { display: grid; gap: 10px; margin-bottom: 12px; }
+.range-row { display: flex; align-items: center; gap: 12px; }
+.range-row .label { width: 38px; }
+.range-row input[type="range"] { flex: 1; min-width: 0; }
+.range-row .time { min-width: 52px; text-align: right; }
+.setrow { display: flex; flex-wrap: wrap; gap: 8px; }
+.ghost.small { padding: 7px 12px; font-size: 0.85rem; }

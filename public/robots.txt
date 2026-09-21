@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://video-trimmer.correia95.workers.dev/sitemap.xml
