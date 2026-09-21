@@ -135,7 +135,8 @@ export default function App() {
       v.muted = true; // silent while exporting; the captured stream still carries the audio
       // Start playing a little before the clip and only begin recording once playback reaches it, so the
       // picture and sound both start together (recording before playback starts leaves stray leading frames).
-      await seek(v, Math.max(0, start - PREROLL));
+      const from = Math.max(0, start - PREROLL);
+      await seek(v, from);
       const stream = capture.call(v);
       const hasAudio = stream.getAudioTracks().length > 0;
       const recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 5_000_000 });
@@ -149,7 +150,8 @@ export default function App() {
         const t0 = performance.now();
         const check = () => {
           const cur = v.currentTime;
-          if (!began && cur >= start - 0.005) { recorder.start(250); began = true; }
+          // Begin only once the playhead has really advanced (play() can resolve before the picture moves).
+          if (!began && cur >= start - 0.005 && cur > from + 0.01) { recorder.start(250); began = true; }
           if (began) setProgress(Math.min(1, Math.max(0, (cur - start) / (end - start))));
           const timedOut = (performance.now() - t0) / 1000 > (end - start) * 3 + 15;
           if (cancelRef.current || (began && cur >= end - 0.03) || v.ended || timedOut || v.paused) {
@@ -163,8 +165,9 @@ export default function App() {
       });
       const recordedSeconds = Math.max(0.1, v.currentTime - start);
       v.pause();
-      if (recorder.state !== 'inactive') recorder.stop();
+      // End the capture before stopping the recorder so nothing is recorded after playback has finished.
       stream.getTracks().forEach((t) => t.stop());
+      if (recorder.state !== 'inactive') recorder.stop();
       if (began) await stopped;
       if (cancelRef.current) { setExporting(false); return; }
       if (!began || chunks.length === 0) throw new Error('nothing was recorded');
