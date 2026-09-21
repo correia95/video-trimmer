@@ -102,4 +102,5 @@ test('formatTime, readableSize and trimmedFileName', () => {
   assert.equal(readableSize(1536), '1.5 KB');
   assert.equal(trimmedFileName('holiday.mp4', 1.25, 8), 'holiday-trim-1-3s-8-0s.webm');
   assert.equal(trimmedFileName('', 0, 2), 'video-trim-0-0s-2-0s.webm');
+  assert.equal(trimmedFileName('clip.mov', 1, 2.5, 'mp4'), 'clip-trim-1-0s-2-5s.mp4');
 });

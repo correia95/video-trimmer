@@ -9,17 +9,21 @@ import {
   trimmedFileName,
 } from './webm';
 
-const MIME_CANDIDATES = [
+const WEBM_MIMES = [
   'video/webm;codecs=vp9,opus',
   'video/webm;codecs=vp8,opus',
   'video/webm;codecs=vp9',
   'video/webm;codecs=vp8',
   'video/webm',
 ];
+const MP4_MIMES = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4'];
+const PREROLL = 0.25;
+
+type Format = 'mp4' | 'webm';
 const MAX_FILE_BYTES = 500 * 1024 * 1024;
 const MIN_LEN = 0.2;
 
-interface Result { url: string; bytes: number; seconds: number; hasAudio: boolean }
+interface Result { url: string; bytes: number; seconds: number; hasAudio: boolean; ext: Format }
 
 // Browser-recorded WebM files report an infinite duration until the player has seeked to the end.
 function resolveDuration(v: HTMLVideoElement): Promise<number> {
@@ -62,6 +66,8 @@ export default function App() {
   const [error, setError] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
+  const [mp4Ok] = useState(() => pickSupportedMimeType(MP4_MIMES) !== null);
+  const [format, setFormat] = useState<Format>(() => (pickSupportedMimeType(MP4_MIMES) ? 'mp4' : 'webm'));
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const cancelRef = useRef(false);
@@ -112,7 +118,7 @@ export default function App() {
   async function exportClip() {
     const v = videoRef.current as CaptureVideo | null;
     if (!v) return;
-    const mime = pickSupportedMimeType(MIME_CANDIDATES);
+    const mime = pickSupportedMimeType(format === 'mp4' ? MP4_MIMES : WEBM_MIMES);
     const capture = v.captureStream ?? v.mozCaptureStream;
     if (!mime || !capture) {
       setError("Your browser can't record video from a player (MediaRecorder / captureStream). Try a recent Chrome or Edge.");
@@ -127,7 +133,9 @@ export default function App() {
     try {
       v.pause();
       v.muted = true; // silent while exporting; the captured stream still carries the audio
-      await seek(v, start);
+      // Start playing a little before the clip and only begin recording once playback reaches it, so the
+      // picture and sound both start together (recording before playback starts leaves stray leading frames).
+      await seek(v, Math.max(0, start - PREROLL));
       const stream = capture.call(v);
       const hasAudio = stream.getAudioTracks().length > 0;
       const recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 5_000_000 });
@@ -135,35 +143,40 @@ export default function App() {
       recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
       const stopped = new Promise<void>((resolve) => { recorder.onstop = () => resolve(); });
 
-      recorder.start(250);
       await v.play();
+      let began = false;
       await new Promise<void>((resolve) => {
         const t0 = performance.now();
         const check = () => {
           const cur = v.currentTime;
-          setProgress(Math.min(1, Math.max(0, (cur - start) / (end - start))));
+          if (!began && cur >= start - 0.005) { recorder.start(250); began = true; }
+          if (began) setProgress(Math.min(1, Math.max(0, (cur - start) / (end - start))));
           const timedOut = (performance.now() - t0) / 1000 > (end - start) * 3 + 15;
-          if (cancelRef.current || cur >= end - 0.03 || v.ended || timedOut || v.paused) {
+          if (cancelRef.current || (began && cur >= end - 0.03) || v.ended || timedOut || v.paused) {
             clearInterval(iv);
             v.removeEventListener('timeupdate', check);
             resolve();
           }
         };
-        const iv = setInterval(check, 30);
+        const iv = setInterval(check, 10);
         v.addEventListener('timeupdate', check);
       });
       const recordedSeconds = Math.max(0.1, v.currentTime - start);
       v.pause();
-      recorder.stop();
-      await stopped;
+      if (recorder.state !== 'inactive') recorder.stop();
       stream.getTracks().forEach((t) => t.stop());
+      if (began) await stopped;
       if (cancelRef.current) { setExporting(false); return; }
+      if (!began || chunks.length === 0) throw new Error('nothing was recorded');
 
       const type = mime.split(';')[0];
-      const raw = new Uint8Array(await new Blob(chunks, { type }).arrayBuffer());
-      const patched = setWebmDuration(raw, recordedSeconds);
-      const blob = new Blob([(patched ?? raw).slice().buffer], { type });
-      setResult({ url: URL.createObjectURL(blob), bytes: blob.size, seconds: recordedSeconds, hasAudio });
+      let blob = new Blob(chunks, { type });
+      if (format === 'webm') {
+        const raw = new Uint8Array(await blob.arrayBuffer());
+        const patched = setWebmDuration(raw, recordedSeconds);
+        if (patched) blob = new Blob([patched.slice().buffer], { type });
+      }
+      setResult({ url: URL.createObjectURL(blob), bytes: blob.size, seconds: recordedSeconds, hasAudio, ext: format });
       setProgress(1);
     } catch (e) {
       console.error(e);
@@ -265,6 +278,16 @@ export default function App() {
                 the clip through once, so it takes about {formatTime(clipLen)}.
               </p>
 
+              <div className="controls">
+                <label className="field">
+                  <span>Output format</span>
+                  <select value={format} onChange={(e) => setFormat(e.target.value as Format)} disabled={exporting}>
+                    {mp4Ok && <option value="mp4">MP4 (H.264 + AAC)</option>}
+                    <option value="webm">WebM (VP8/VP9 + Opus)</option>
+                  </select>
+                </label>
+              </div>
+
               <div className="actions">
                 {!exporting && <button className="primary" onClick={exportClip}>Trim clip</button>}
                 {exporting && <button className="ghost" onClick={() => { cancelRef.current = true; }}>Cancel</button>}
@@ -287,10 +310,10 @@ export default function App() {
                 onLoadedMetadata={(e) => { void resolveDuration(e.currentTarget); }}
               />
               <p className="hint">
-                {formatTime(result.seconds)} · {readableSize(result.bytes)} · WebM ·{' '}
+                {formatTime(result.seconds)} · {readableSize(result.bytes)} · {result.ext === 'mp4' ? 'MP4' : 'WebM'} ·{' '}
                 {result.hasAudio ? 'with audio' : 'no audio track found in the source'}
               </p>
-              <a className="primary" href={result.url} download={trimmedFileName(fileName, start, end)}>Download clip</a>
+              <a className="primary" href={result.url} download={trimmedFileName(fileName, start, end, result.ext)}>Download clip</a>
             </div>
           )}
         </>
@@ -301,14 +324,14 @@ export default function App() {
         <p>
           Browsers can't cut a video file without re-encoding it, so this plays your chosen section
           once — silently on your side — while your browser records the picture and sound as a new
-          video. That means exporting takes as long as the clip itself, and the result is a
-          re-encoded WebM file, so it is very slightly different in quality from the original.
+          video. That means exporting takes as long as the clip itself.
         </p>
-        <h3>Why WebM instead of MP4?</h3>
+        <h3>MP4 or WebM?</h3>
         <p>
-          Browsers have a built-in recorder for WebM but not for MP4, and this tool deliberately
-          uses no extra encoder library. WebM plays in current browsers, VLC and most editors and
-          social platforms. If you need MP4, convert the trimmed clip afterwards.
+          Recent Chrome and Edge can record MP4 (H.264 video + AAC audio), which plays almost
+          everywhere, so it's the default when your browser offers it. Otherwise the clip is saved
+          as WebM, which plays in current browsers, VLC and most editors. Either way it is
+          re-encoded from your original, so quality is very slightly different.
         </p>
         <h3>Tips</h3>
         <p>

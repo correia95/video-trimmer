@@ -169,10 +169,10 @@ export function readableSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
-export function trimmedFileName(baseName: string, start: number, end: number): string {
+export function trimmedFileName(baseName: string, start: number, end: number, ext = 'webm'): string {
   const base = baseName.replace(/\.[^.]+$/, '') || 'video';
   const f = (n: number) => n.toFixed(1).replace('.', '-');
-  return `${base}-trim-${f(start)}s-${f(end)}s.webm`;
+  return `${base}-trim-${f(start)}s-${f(end)}s.${ext}`;
 }
 
 export function pickSupportedMimeType(candidates: string[]): string | null {
